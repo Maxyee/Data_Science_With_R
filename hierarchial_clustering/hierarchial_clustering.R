@@ -1,0 +1,106 @@
+
+# HIERARCHICAL CLUSTERING
+# -------------------------------------------
+
+# hierarchial clustering function
+# hclust(d, method = "complete")
+# try on synthetic data
+set.seed(111)
+x1 <- runif(10)
+x2 <- runif(10)
+
+df <- cbind(x1, x2)
+dist.matrix <- dist(df, method = "euclidean")
+syn.hclust <- hclust(dist.matrix, method = "complete")
+# agglomeration linkage -> "complete", "single", "average", "centroid", "ward.D", "ward.D2"
+
+plot(syn.hclust, main = "Hierarchical clust in Synthetic data")
+str(syn.hclust)
+
+
+# merging of examples stepwise
+print(syn.hclust$merge)
+
+
+# cophenetic distance between examples
+print(syn.hclust$height)
+
+# order of examples for clean plot without crossing paths
+print(syn.hclust$order)
+
+
+# iris dataset
+data(iris)
+head(iris)
+
+
+# standardize data before clustering
+iris[,1:4] <- scale(iris[,1:4])
+
+
+# calculate distance matrix (distance between each observations) using dist() function
+distance_matrix <- dist(iris[,1:4], method = "euclidean")
+
+
+iris.h.clust <- hclust(d = distance_matrix, method = "complete")
+plot(iris.h.clust, hang = -1, main = "Hierarchial Cluster", cex=0.5)
+
+
+# cut dendogram into various categories
+# cutree(tree, k = NULL, h = NULL), 
+# k <- desired number of clusters, h <- height to cut
+clusters <- cutree(iris.h.clust, k = 3)
+table(clusters, iris$Species)
+table(clusters)
+
+
+# cut the tree at height 3
+clusters <- cutree(iris.h.clust, h = 3)
+table(clusters, iris$Species)
+table(clusters)
+
+# to verify the hcluster tree
+# correlation between cophenetic distance (height in dendogram) and original distance (from dist())
+dist.coph <- cophenetic(iris.h.clust)
+distance_matrix <- dist(iris[,1:4], method = "euclidean")
+
+
+# correlation
+cor(dist.coph, distance_matrix)
+
+
+# try different agglomeration methods 
+iris.h.clust <- hclust(d = distance_matrix, method = "ward.D2")
+dist.coph <- cophenetic(iris.h.clust)
+cor(dist.coph, distance_matrix)
+
+
+# library "factoextra" for better visualization of dendograms
+# install.packages("factoextra")
+library("factoextra")
+fviz_dend(iris.h.clust, k = 3, k_colors = c("red","blue","green"),
+          color_labels_by_k = TRUE, rect = TRUE, main = "Dendogram Visualization")
+
+
+# agglomerative method using "cluster" package
+library("cluster")
+iris.h.clust <- agnes(x = iris[,1:4], # data
+                      stand = TRUE, # standardize
+                      metric = "euclidean", # distance metric
+                      method = "ward" # linkage method
+)
+fviz_dend(iris.h.clust, k = 3, k_colors = c("red","blue","green"),
+          color_labels_by_k = TRUE, rect = TRUE, main = "Dendogram Visualization")
+
+
+# divisive method
+iris.h.clust.d <- diana(x = iris[,1:4],
+                        stand = TRUE,
+                        metric = "euclidean"
+)
+
+fviz_dend(iris.h.clust.d, k = 3, k_colors = c("red","blue","green"),
+          color_labels_by_k = TRUE, rect = TRUE, main = "Dendogram Visualization")
+
+clusters <- cutree(iris.h.clust.d, k = 3)
+table(clusters, iris$Species)
